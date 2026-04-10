@@ -1,0 +1,16 @@
+{
+  "name": "startupmvp",
+  "private": true,
+  "workspaces": [
+    "app"
+  ],
+  "scripts": {
+    "dev:app": "npm -w app run dev",
+    "build:app": "npm -w app run build",
+    "lint": "npm -w app run lint",
+    "typecheck": "npm -w app run typecheck"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
