@@ -1,8 +1,8 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "71fdf5e13797d6d74e7e28337def9c3a"
+client_id = "2b9a9808fc58bae75a4c2492e64d262b"
 name = "discount-optimizer"
-application_url = "https://example.com"
+application_url = "http://localhost:3000"
 embedded = true
 
 [build]
@@ -25,4 +25,4 @@ api_version = "2026-07"
 scopes = "read_products,write_products,read_orders,read_inventory,write_discounts"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [ "http://localhost:3000/auth/callback" ]

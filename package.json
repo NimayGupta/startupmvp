@@ -2,13 +2,13 @@
   "name": "startupmvp",
   "private": true,
   "workspaces": [
-    "app"
+    "app/discount-optimizer"
   ],
   "scripts": {
-    "dev:app": "npm -w app run dev",
-    "build:app": "npm -w app run build",
-    "lint": "npm -w app run lint",
-    "typecheck": "npm -w app run typecheck"
+    "dev:app": "npm -w app/discount-optimizer run dev",
+    "build:app": "npm -w app/discount-optimizer run build",
+    "lint": "npm -w app/discount-optimizer run lint",
+    "typecheck": "npm -w app/discount-optimizer run typecheck"
   },
   "engines": {
     "node": ">=20.0.0"
