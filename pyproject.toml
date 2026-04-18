@@ -48,6 +48,17 @@ ignore = ["S101"]  # allow assert in tests
 asyncio_mode = "auto"
 testpaths = ["engine/tests", "workers/tests"]
 
+[tool.coverage.run]
+omit = [
+  "engine/api/*",
+  "engine/db/*",
+  "engine/config.py",
+  "engine/engine_selector.py",
+  "engine/experiments/*",
+  "engine/main.py",
+  "engine/recommendations/*",
+]
+
 [tool.mypy]
 python_version = "3.9"
 strict = true

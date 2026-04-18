@@ -62,8 +62,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           break;
         }
         const plan = planFromSubscription(sub);
-        const periodEnd = sub.current_period_end
-          ? new Date(sub.current_period_end * 1000)
+        const periodEndTimestamp = sub.items.data[0]?.current_period_end;
+        const periodEnd = periodEndTimestamp
+          ? new Date(periodEndTimestamp * 1000)
           : null;
         await upsertSubscription(
           merchantId,

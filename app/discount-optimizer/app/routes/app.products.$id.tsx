@@ -468,7 +468,7 @@ function recommendationTone(
 // ---------------------------------------------------------------------------
 
 export default function ProductDetail() {
-  const { merchantId, autoApproveEnabled, product, variants, featuresByVariantId, experiments, recommendation, trustScore } =
+  const { autoApproveEnabled, product, variants, featuresByVariantId, experiments, recommendation, trustScore } =
     useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
