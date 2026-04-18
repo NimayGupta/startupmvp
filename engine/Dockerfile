@@ -3,7 +3,9 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Install curl for health check probes
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl gcc g++ gfortran libopenblas-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

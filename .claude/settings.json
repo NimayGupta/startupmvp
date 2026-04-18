@@ -1,0 +1,1 @@
+{ "permissions": { "defaultMode": "acceptEdits", "allow": [ "Bash(npm run *)", "Bash(git status)", "Bash(git diff *)", "Bash(git add *)", "Bash(ls *)", "Bash(cat *)", "Bash(grep *)" ], "deny": [ "Bash(rm -rf *)", "Bash(git push *)", "Bash(git reset --hard *)" ] } }

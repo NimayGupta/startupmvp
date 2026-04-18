@@ -1,0 +1,199 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main      # → production ECS cluster
+      - staging   # → staging ECS cluster
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false   # never cancel an in-flight deploy
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Guard: run CI tests before any deployment
+  # ---------------------------------------------------------------------------
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  # ---------------------------------------------------------------------------
+  # Build and push Docker images to ECR
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build & push images
+    needs: ci
+    runs-on: ubuntu-latest
+    outputs:
+      engine_image: ${{ steps.meta-engine.outputs.image }}
+      worker_image: ${{ steps.meta-worker.outputs.image }}
+      remix_image:  ${{ steps.meta-remix.outputs.image }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image tag
+        id: tag
+        run: echo "TAG=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build + push engine
+        id: meta-engine
+        env:
+          IMAGE: ${{ env.ECR_REGISTRY }}/discount-optimizer-engine:${{ steps.tag.outputs.TAG }}
+        run: |
+          docker build -t "$IMAGE" ./engine
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Build + push worker
+        id: meta-worker
+        env:
+          IMAGE: ${{ env.ECR_REGISTRY }}/discount-optimizer-worker:${{ steps.tag.outputs.TAG }}
+        run: |
+          docker build -t "$IMAGE" ./workers
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Build + push remix
+        id: meta-remix
+        env:
+          IMAGE: ${{ env.ECR_REGISTRY }}/discount-optimizer-remix:${{ steps.tag.outputs.TAG }}
+        run: |
+          docker build -t "$IMAGE" ./app/discount-optimizer
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------------
+  # Deploy to staging (branch: staging)
+  # ---------------------------------------------------------------------------
+  deploy-staging:
+    name: Deploy → staging
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'staging'
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Update ECS services (staging)
+        env:
+          CLUSTER: discount-optimizer-staging
+          ENGINE_SERVICE: engine
+          WORKER_SERVICE: worker
+          REMIX_SERVICE:  remix
+        run: |
+          # Force new deployment — ECS pulls the new image tag automatically
+          # because task definitions reference :latest or the exact digest.
+          # For production-grade zero-downtime, use task-definition update below.
+          aws ecs update-service --cluster "$CLUSTER" --service "$ENGINE_SERVICE" --force-new-deployment
+          aws ecs update-service --cluster "$CLUSTER" --service "$WORKER_SERVICE" --force-new-deployment
+          aws ecs update-service --cluster "$CLUSTER" --service "$REMIX_SERVICE"  --force-new-deployment
+
+      - name: Wait for services to stabilize
+        env:
+          CLUSTER: discount-optimizer-staging
+        run: |
+          aws ecs wait services-stable --cluster "$CLUSTER" \
+            --services engine worker remix
+
+      - name: Smoke test staging
+        run: |
+          sleep 15
+          STATUS=$(curl -sf https://staging.discount-optimizer.app/health | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
+          [ "$STATUS" = "ok" ] || (echo "Health check failed: $STATUS" && exit 1)
+
+  # ---------------------------------------------------------------------------
+  # Deploy to production (branch: main)
+  # ---------------------------------------------------------------------------
+  deploy-production:
+    name: Deploy → production
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'main'
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Render engine task definition
+        id: task-def-engine
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infra/ecs/engine-task-def.json
+          container-name:  engine
+          image:           ${{ needs.build.outputs.engine_image }}
+
+      - name: Render worker task definition
+        id: task-def-worker
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infra/ecs/worker-task-def.json
+          container-name:  worker
+          image:           ${{ needs.build.outputs.worker_image }}
+
+      - name: Render remix task definition
+        id: task-def-remix
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infra/ecs/remix-task-def.json
+          container-name:  remix
+          image:           ${{ needs.build.outputs.remix_image }}
+
+      - name: Deploy engine to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-engine.outputs.task-definition }}
+          service:         engine
+          cluster:         discount-optimizer-production
+          wait-for-service-stability: true
+
+      - name: Deploy worker to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-worker.outputs.task-definition }}
+          service:         worker
+          cluster:         discount-optimizer-production
+          wait-for-service-stability: true
+
+      - name: Deploy remix to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-remix.outputs.task-definition }}
+          service:         remix
+          cluster:         discount-optimizer-production
+          wait-for-service-stability: true
+
+      - name: Smoke test production
+        run: |
+          sleep 20
+          STATUS=$(curl -sf https://discount-optimizer.app/health | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
+          [ "$STATUS" = "ok" ] || (echo "Production health check failed" && exit 1)

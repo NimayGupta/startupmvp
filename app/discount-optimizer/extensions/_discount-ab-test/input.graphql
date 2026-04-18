@@ -1,0 +1,23 @@
+query RunInput {
+  cart {
+    attribute(key: "ab_group") {
+      value
+    }
+    discountAttribute: attribute(key: "ab_discount_pct") {
+      value
+    }
+    experimentId: attribute(key: "ab_experiment_id") {
+      value
+    }
+    lines {
+      id
+      quantity
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          id
+        }
+      }
+    }
+  }
+}

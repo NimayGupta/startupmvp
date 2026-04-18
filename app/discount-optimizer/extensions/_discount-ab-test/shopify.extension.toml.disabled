@@ -1,0 +1,14 @@
+api_version = "2026-07"
+uid = "a622dd67-f671-a31a-9bda-35e0f816813b2ccec9b6"
+
+[[extensions]]
+type = "product_discounts"
+name = "Discount A/B Test"
+handle = "discount-ab-test"
+
+  [extensions.build]
+  command = "cargo build --release --target=wasm32-wasip1"
+  path = "target/wasm32-wasip1/release/discount_ab_test.wasm"
+
+  [extensions.ui]
+  enable_create = false

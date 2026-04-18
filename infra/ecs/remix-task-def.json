@@ -1,0 +1,47 @@
+{
+  "family": "discount-optimizer-remix",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/discount-optimizer-task-role",
+  "containerDefinitions": [
+    {
+      "name": "remix",
+      "image": "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/discount-optimizer-remix:latest",
+      "essential": true,
+      "portMappings": [
+        { "containerPort": 3000, "protocol": "tcp" }
+      ],
+      "secrets": [
+        { "name": "DATABASE_URL",          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/DATABASE_URL" },
+        { "name": "ENGINE_URL",            "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/ENGINE_URL" },
+        { "name": "INTERNAL_API_KEY",      "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/INTERNAL_API_KEY" },
+        { "name": "SHOPIFY_API_KEY",       "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/SHOPIFY_API_KEY" },
+        { "name": "SHOPIFY_API_SECRET",    "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/SHOPIFY_API_SECRET" },
+        { "name": "STRIPE_SECRET_KEY",     "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/STRIPE_SECRET_KEY" },
+        { "name": "STRIPE_WEBHOOK_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/STRIPE_WEBHOOK_SECRET" },
+        { "name": "SENTRY_DSN",            "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/SENTRY_DSN" }
+      ],
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" }
+      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"],
+        "interval": 15,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 30
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/discount-optimizer-remix",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

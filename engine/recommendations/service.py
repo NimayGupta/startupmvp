@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from engine.bandit.thompson import compute_context_bucket, generate_bandit_recommendation
+from engine.engine_selector import maybe_promote_to_bandit, select_engine
 from engine.features.compute import compute_merchant_features
 from engine.recommendations.explain import ExplanationContext, get_explainer
 from engine.rules.v1 import generate_recommendation
+from engine.trust.scorer import _AUTO_APPROVE_THRESHOLD, get_trust_score
+
+logger = logging.getLogger(__name__)
 
 
 async def get_latest_recommendation(
@@ -67,13 +73,51 @@ async def generate_or_get_recommendation(
     if not features:
         raise ValueError("No features available for this product yet")
 
-    draft = generate_recommendation(
-        merchant_id=merchant_id,
-        product_id=product_id,
-        safe_zone_max_pct=float(merchant["safe_zone_max_pct"]),
-        features=features,
+    # ------------------------------------------------------------------
+    # Engine selection: rules_v1 or bandit_v1 (Phase 5B)
+    # ------------------------------------------------------------------
+    safe_zone = float(merchant["safe_zone_max_pct"])
+    context_bucket = compute_context_bucket(features)
+    engine_version = await select_engine(db, merchant_id, context_bucket)
+
+    if engine_version == "bandit_v1":
+        draft = await generate_bandit_recommendation(
+            db=db,
+            merchant_id=merchant_id,
+            product_id=product_id,
+            safe_zone_max_pct=safe_zone,
+            features=features,
+        )
+        # Embed context_bucket in snapshot so retraining can find it later
+        draft.feature_snapshot["context_bucket"] = context_bucket
+    else:
+        draft = generate_recommendation(
+            merchant_id=merchant_id,
+            product_id=product_id,
+            safe_zone_max_pct=safe_zone,
+            features=features,
+        )
+        # Embed context_bucket so retrain still works if merchant later promotes
+        draft.feature_snapshot["context_bucket"] = context_bucket
+
+    logger.info(
+        "Recommendation generated: merchant=%d product=%d engine=%s discount=%.1f%%",
+        merchant_id, product_id, engine_version, draft.recommended_discount_pct,
     )
 
+    # ------------------------------------------------------------------
+    # Auto-approve check (Phase 5E)
+    # ------------------------------------------------------------------
+    auto_approve_eligible = await _check_auto_approve(
+        db, merchant_id, product_id,
+        recommended_pct=draft.recommended_discount_pct,
+        merchant=merchant,
+    )
+    draft.feature_snapshot["auto_approve_eligible"] = auto_approve_eligible
+
+    # ------------------------------------------------------------------
+    # Persist recommendation
+    # ------------------------------------------------------------------
     explainer = get_explainer()
     llm_explanation = explainer.generate(
         ExplanationContext(
@@ -88,41 +132,19 @@ async def generate_or_get_recommendation(
         text(
             """
             INSERT INTO recommendations (
-              merchant_id,
-              product_id,
-              recommended_discount_pct,
-              rationale,
-              llm_explanation,
-              confidence_score,
-              model_version,
-              feature_snapshot,
-              status
+              merchant_id, product_id, recommended_discount_pct,
+              rationale, llm_explanation, confidence_score,
+              model_version, feature_snapshot, status
             )
             VALUES (
-              :merchant_id,
-              :product_id,
-              :recommended_discount_pct,
-              :rationale,
-              :llm_explanation,
-              :confidence_score,
-              :model_version,
-              CAST(:feature_snapshot AS jsonb),
-              'pending'
+              :merchant_id, :product_id, :recommended_discount_pct,
+              :rationale, :llm_explanation, :confidence_score,
+              :model_version, CAST(:feature_snapshot AS jsonb), 'pending'
             )
             RETURNING
-              id,
-              merchant_id,
-              product_id,
-              recommended_discount_pct,
-              rationale,
-              llm_explanation,
-              confidence_score,
-              model_version,
-              feature_snapshot,
-              status,
-              merchant_edit_pct,
-              created_at,
-              reviewed_at
+              id, merchant_id, product_id, recommended_discount_pct,
+              rationale, llm_explanation, confidence_score, model_version,
+              feature_snapshot, status, merchant_edit_pct, created_at, reviewed_at
             """
         ),
         {
@@ -141,21 +163,82 @@ async def generate_or_get_recommendation(
         raise RuntimeError("Failed to insert recommendation")
 
     await _append_event(
-        db,
-        merchant_id,
-        "recommendation_generated",
+        db, merchant_id, "recommendation_generated",
         {
             "recommendation_id": int(recommendation["id"]),
             "product_id": product_id,
             "recommended_discount_pct": float(recommendation["recommended_discount_pct"]),
             "confidence_score": float(recommendation["confidence_score"]),
             "model_version": recommendation["model_version"],
+            "engine_version": engine_version,
+            "auto_approve_eligible": auto_approve_eligible,
         },
     )
+    await db.commit()
 
     serialized = _serialize_recommendation(recommendation)
     serialized["product_title"] = str(product["title"])
     return serialized
+
+
+async def _check_auto_approve(
+    db: AsyncSession,
+    merchant_id: int,
+    product_id: int,
+    recommended_pct: float,
+    merchant: dict[str, Any],
+) -> bool:
+    """
+    Return True if this recommendation qualifies for auto-approve:
+      1. Merchant has auto_approve_enabled = true
+      2. Product trust_score >= 0.70
+      3. Recommended change is ≤ 5% delta from last approved discount
+      4. No active experiment currently running for this product
+    """
+    # Gate 1: merchant setting
+    if not merchant.get("auto_approve_enabled", False):
+        return False
+
+    # Gate 2: trust score threshold
+    trust = await get_trust_score(db, merchant_id, product_id)
+    if trust["trust_score"] < _AUTO_APPROVE_THRESHOLD:
+        return False
+
+    # Gate 3: delta from last approved discount
+    last_approved = await db.execute(
+        text(
+            """
+            SELECT COALESCE(merchant_edit_pct, recommended_discount_pct)::float AS applied_pct
+            FROM recommendations
+            WHERE merchant_id = :mid AND product_id = :pid
+              AND status IN ('approved', 'edited_and_approved')
+            ORDER BY reviewed_at DESC
+            LIMIT 1
+            """
+        ),
+        {"mid": merchant_id, "pid": product_id},
+    )
+    row = last_approved.mappings().first()
+    if row:
+        last_pct = float(row["applied_pct"])
+        if abs(recommended_pct - last_pct) > 5.0:
+            return False
+
+    # Gate 4: no active experiment
+    active_exp = await db.execute(
+        text(
+            """
+            SELECT 1 FROM experiments
+            WHERE product_id = :pid AND status = 'active'
+            LIMIT 1
+            """
+        ),
+        {"pid": product_id},
+    )
+    if active_exp.first() is not None:
+        return False
+
+    return True
 
 
 async def approve_recommendation(

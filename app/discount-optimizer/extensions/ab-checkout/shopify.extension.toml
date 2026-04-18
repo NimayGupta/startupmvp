@@ -1,0 +1,14 @@
+api_version = "2025-07"
+uid = "6859ee42-391d-ebed-c7f5-47ca13157e1da55ee0c8"
+
+[[extensions]]
+type = "ui_extension"
+name = "A/B Test Traffic Splitter"
+handle = "ab-checkout"
+
+  [[extensions.targeting]]
+  module = "./src/Checkout.tsx"
+  target = "purchase.checkout.block.render"
+
+  [extensions.capabilities]
+  network_access = true

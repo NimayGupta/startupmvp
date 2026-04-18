@@ -1,0 +1,17 @@
+[package]
+name = "discount-ab-test"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "discount_ab_test"
+crate-type = ["cdylib"]
+
+[dependencies]
+shopify_function = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+lto = true
+opt-level = "z"

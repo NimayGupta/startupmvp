@@ -6,6 +6,8 @@ All Shopify API calls go through these helpers so that:
 - Access tokens are decrypted from the database
 - GraphQL errors are surfaced as exceptions
 """
+from __future__ import annotations
+
 import json
 import os
 import random

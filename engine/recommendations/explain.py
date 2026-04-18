@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from engine.config import settings
 
 
-@dataclass(slots=True)
+@dataclass()
 class ExplanationContext:
     product_title: str
     recommended_discount_pct: float

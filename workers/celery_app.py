@@ -24,6 +24,8 @@ celery_app = Celery(
         "workers.tasks.sync",
         "workers.tasks.webhooks",
         "workers.tasks.feature_refresh",
+        "workers.tasks.experiment_monitor",
+        "workers.tasks.model_retrain",
     ],
 )
 

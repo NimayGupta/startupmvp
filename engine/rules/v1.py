@@ -13,7 +13,7 @@ from statistics import mean
 from typing import Any
 
 
-@dataclass(slots=True)
+@dataclass()
 class RecommendationDraft:
     merchant_id: int
     product_id: int
@@ -74,7 +74,6 @@ def generate_recommendation(
     # Rule 1: active experiment lock.
     if has_active_experiment:
         target_discount_pct = max(target_discount_pct, current_discount_pct)
-        confidence = min(confidence, 0.58)
         rule_notes.append(
             "An active experiment already exists for this product, so the recommendation stays conservative."
         )
@@ -126,6 +125,11 @@ def generate_recommendation(
         confidence -= 0.05
     else:
         confidence += min(total_tests_run * 0.01, 0.08)
+
+    # Active experiment hard cap applied after all rules so later rules cannot
+    # push confidence back above the 0.58 ceiling.
+    if has_active_experiment:
+        confidence = min(confidence, 0.58)
 
     recommended_discount_pct = _clamp(target_discount_pct, 0.0, safe_zone_max_pct)
     confidence_score = _clamp(confidence, 0.5, 0.95)

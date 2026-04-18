@@ -65,6 +65,34 @@ def process_orders_create(self: Any, merchant_id: int, payload: dict[str, Any]) 
                 )
                 inserted += 1
 
+        # Log experiment conversion event if order has A/B cart attributes
+        attributes = {a.get("name"): a.get("value") for a in payload.get("note_attributes", [])}
+        ab_group = attributes.get("ab_group") or attributes.get("_ab_group")
+        ab_experiment_id = attributes.get("ab_experiment_id") or attributes.get("_ab_experiment_id")
+        ab_session_hash = attributes.get("ab_session_hash") or attributes.get("_ab_session_hash")
+
+        if ab_group and ab_experiment_id:
+            order_value = sum(
+                float(item.get("price", 0)) * int(item.get("quantity", 1))
+                for item in line_items
+            )
+            cur.execute(
+                """
+                INSERT INTO event_log (merchant_id, event_type, payload)
+                VALUES (%s, 'experiment_conversion', %s)
+                """,
+                (
+                    merchant_id,
+                    json.dumps({
+                        "experiment_id": ab_experiment_id,
+                        "group": ab_group,
+                        "session_hash": ab_session_hash or "",
+                        "order_value": order_value,
+                        "shopify_order_id": shopify_order_id,
+                    }),
+                ),
+            )
+
         conn.commit()
 
     logger.info("orders/create: inserted %d line items for order %s", inserted, shopify_order_id)

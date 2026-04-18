@@ -1,0 +1,36 @@
+{
+  "family": "discount-optimizer-worker",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/discount-optimizer-task-role",
+  "containerDefinitions": [
+    {
+      "name": "worker",
+      "image": "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/discount-optimizer-worker:latest",
+      "essential": true,
+      "command": ["celery", "-A", "workers.celery_app", "worker", "--beat", "--loglevel=info"],
+      "secrets": [
+        { "name": "DATABASE_URL",         "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/DATABASE_URL" },
+        { "name": "CELERY_BROKER_URL",    "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/CELERY_BROKER_URL" },
+        { "name": "CELERY_RESULT_BACKEND","valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/CELERY_RESULT_BACKEND" },
+        { "name": "ENGINE_URL",           "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/ENGINE_URL" },
+        { "name": "INTERNAL_API_KEY",     "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/INTERNAL_API_KEY" },
+        { "name": "SENTRY_DSN",           "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:discount-optimizer/SENTRY_DSN" }
+      ],
+      "environment": [
+        { "name": "PYTHON_ENV", "value": "production" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/discount-optimizer-worker",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}
