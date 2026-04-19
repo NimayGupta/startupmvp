@@ -3,12 +3,18 @@ Local dev seed script — populates the DB and Redis feature store so the
 recommendation engine works without a real Shopify connection.
 
 What it inserts:
-  - 1 product_variant  (price $75, 80 units in stock)
-  - 28 days of synthetic order_line_items (~3 orders/day → healthy sales history)
-  - Calls POST /features/refresh/{merchant_id} so Redis is warm immediately
+  - 1 merchant row matched to your dev Shopify session's shop domain
+  - 1 product + product_variant  (price $75, 80 units in stock)
+  - 28 days of synthetic order_line_items (~3 orders/day)
+  - Calls GET /features/{merchant_id} so Redis is warm immediately
 
 Run from the repo root:
-  python scripts/seed_local.py [--merchant-id 2] [--product-id 1]
+  python scripts/seed_local.py --shop-domain your-dev-store.myshopify.com
+
+The shop domain MUST match what Shopify CLI reports as your dev store domain,
+otherwise the Remix loader will create a different merchant row and show
+"No products synced yet".  Find it in the CLI output or:
+  SELECT shopify_domain FROM merchants ORDER BY id;
 """
 from __future__ import annotations
 
@@ -121,27 +127,76 @@ def trigger_feature_refresh(merchant_id: int) -> dict:
     return resp.json()
 
 
+def upsert_merchant(cur, shop_domain: str) -> int:
+    """Insert or return merchant row for the given shop domain."""
+    cur.execute(
+        """
+        INSERT INTO merchants (shopify_domain, access_token, scopes)
+        VALUES (%s, 'local-dev-token', 'read_products,read_orders')
+        ON CONFLICT (shopify_domain) DO UPDATE
+          SET shopify_domain = EXCLUDED.shopify_domain
+        RETURNING id
+        """,
+        (shop_domain,),
+    )
+    row = cur.fetchone()
+    assert row is not None
+    return int(row[0])
+
+
+def upsert_product(cur, merchant_id: int, shopify_product_id: str) -> int:
+    """Insert or return product row."""
+    cur.execute(
+        """
+        INSERT INTO products
+          (merchant_id, shopify_product_id, title, status, synced_at)
+        VALUES (%s, %s, 'Test Product (Local)', 'active', NOW())
+        ON CONFLICT (merchant_id, shopify_product_id) DO UPDATE
+          SET title     = EXCLUDED.title,
+              synced_at = NOW()
+        RETURNING id
+        """,
+        (merchant_id, shopify_product_id),
+    )
+    row = cur.fetchone()
+    assert row is not None
+    return int(row[0])
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--merchant-id", type=int, default=2)
-    parser.add_argument("--product-id", type=int, default=1)
+    parser.add_argument(
+        "--shop-domain",
+        default="test.myshopify.com",
+        help="Shopify dev store domain — must match your active Shopify CLI session",
+    )
+    parser.add_argument(
+        "--product-id", type=int, default=None,
+        help="Reuse an existing product row id (skips product upsert)",
+    )
     args = parser.parse_args()
 
-    merchant_id = args.merchant_id
-    product_id = args.product_id
-    variant_shopify_id = f"gid://shopify/ProductVariant/{product_id}001"
-
-    print(f"Seeding merchant_id={merchant_id} product_id={product_id} ...")
+    shop_domain = args.shop_domain
 
     conn = _conn()
     try:
         with conn.cursor() as cur:
-            # Ensure product title is set (may already exist from initial seed)
-            cur.execute(
-                "UPDATE products SET title = 'Test Product (Local)' WHERE id = %s",
-                (product_id,),
-            )
+            merchant_id = upsert_merchant(cur, shop_domain)
+            print(f"  merchant: id={merchant_id}  domain={shop_domain}")
 
+            if args.product_id:
+                product_id = args.product_id
+                cur.execute(
+                    "UPDATE products SET merchant_id = %s WHERE id = %s",
+                    (merchant_id, product_id),
+                )
+                print(f"  product:  id={product_id}  (reassigned to merchant {merchant_id})")
+            else:
+                shopify_product_id = f"gid://shopify/Product/{merchant_id}001"
+                product_id = upsert_product(cur, merchant_id, shopify_product_id)
+                print(f"  product:  id={product_id}  shopify_id={shopify_product_id}")
+
+            variant_shopify_id = f"gid://shopify/ProductVariant/{product_id}001"
             variant_id = seed_variant(cur, product_id, variant_shopify_id)
             print(f"  product_variants row: id={variant_id}  shopify_id={variant_shopify_id}")
 
