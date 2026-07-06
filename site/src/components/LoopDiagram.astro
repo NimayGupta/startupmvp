@@ -1,0 +1,96 @@
+---
+import { loop } from '../data/loop';
+---
+
+<section id="loop" class="section band--paper" aria-labelledby="loop-title">
+  <div class="container">
+    <p class="kicker">The loop</p>
+    <h2 id="loop-title" class="section-title">How Margent decides</h2>
+    <p class="section-lede">
+      One loop, run continuously, per product. No dashboards to babysit — the
+      loop closes itself.
+    </p>
+
+    <ol class="loop-steps">
+      {
+        loop.map((step) => (
+          <li class="loop-step">
+            <span class="loop-n" aria-hidden="true">
+              {step.n}
+            </span>
+            <h3 class="loop-step-title">{step.title}</h3>
+            <p class="loop-step-body">{step.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .loop-steps {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--space-12);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-8) var(--space-6);
+    counter-reset: none;
+  }
+
+  .loop-step {
+    position: relative;
+    padding-top: var(--space-4);
+    border-top: 2px solid var(--fg);
+  }
+
+  /* Connector arrows between steps (hidden on narrow layouts) */
+  .loop-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    top: -0.75em;
+    right: calc(-1 * var(--space-6) / 2 - 0.25em);
+    color: var(--accent);
+    font-family: var(--font-mono);
+  }
+
+  .loop-n {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  .loop-step-title {
+    font-size: var(--text-xl);
+    margin-top: var(--space-2);
+  }
+
+  .loop-step-body {
+    margin-top: var(--space-3);
+    color: var(--muted);
+    font-size: var(--text-sm);
+    line-height: 1.65;
+  }
+
+  @media (max-width: 900px) {
+    .loop-steps {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .loop-step:nth-child(2)::after {
+      display: none;
+    }
+  }
+
+  @media (max-width: 540px) {
+    .loop-steps {
+      grid-template-columns: 1fr;
+    }
+
+    .loop-step::after {
+      display: none;
+    }
+  }
+</style>

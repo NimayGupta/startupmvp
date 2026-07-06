@@ -1,0 +1,105 @@
+---
+import { features, statusLabels } from '../data/features';
+import Icon from './Icon.astro';
+---
+
+<section id="features" class="section band--paper-2" aria-labelledby="features-title">
+  <div class="container">
+    <p class="kicker">Features</p>
+    <h2 id="features-title" class="section-title">What ships with the engine</h2>
+    <p class="section-lede">
+      Everything below runs server-side against your store’s real orders.
+      Statuses are honest: live means live.
+    </p>
+
+    <ul class="feature-grid">
+      {
+        features.map((f) => (
+          <li class={`feature is-${f.status}`}>
+            <div class="feature-top">
+              <span class="feature-icon">
+                <Icon name={f.icon} />
+              </span>
+              <span class="feature-status">{statusLabels[f.status]}</span>
+            </div>
+            <h3 class="feature-title">{f.title}</h3>
+            <p class="feature-body">{f.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .feature-grid {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--space-12);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+  }
+
+  .feature {
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: var(--space-6);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .feature-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .feature-icon {
+    color: var(--accent);
+    display: inline-flex;
+  }
+
+  .feature-status {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .is-rolling-out .feature-status {
+    color: var(--accent-amber);
+  }
+
+  .is-roadmap .feature-status {
+    color: var(--accent-violet);
+  }
+
+  .feature-title {
+    font-size: var(--text-lg);
+    margin-top: var(--space-4);
+  }
+
+  .feature-body {
+    margin-top: var(--space-3);
+    color: var(--muted);
+    font-size: var(--text-sm);
+    line-height: 1.65;
+  }
+
+  @media (max-width: 1000px) {
+    .feature-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 540px) {
+    .feature-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

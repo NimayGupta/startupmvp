@@ -1,0 +1,40 @@
+---
+// Inline SVG icon set. One consistent family: 24px grid, 1.75 stroke,
+// round caps, no fills. Add icons here, reference by name in data files.
+interface Props {
+  name: string;
+  size?: number;
+}
+const { name, size = 22 } = Astro.props;
+
+const paths: Record<string, string> = {
+  flask:
+    'M10 3h4M11 3v5.5L5.8 17.6A2 2 0 0 0 7.6 21h8.8a2 2 0 0 0 1.8-3.4L13 8.5V3M8.5 14h7',
+  pulse: 'M3 12h4l2.5-6 4 12L16 12h5',
+  sparkle:
+    'M12 4l1.8 4.6L18.5 10l-4.7 1.4L12 16l-1.8-4.6L5.5 10l4.7-1.4L12 4ZM18 16l.9 2.1L21 19l-2.1.9L18 22l-.9-2.1L15 19l2.1-.9L18 16Z',
+  bag: 'M5 8h14l-1.2 12.2a1.8 1.8 0 0 1-1.8 1.6H8a1.8 1.8 0 0 1-1.8-1.6L5 8ZM8.5 8V6.5a3.5 3.5 0 0 1 7 0V8',
+  rows: 'M4 5.5h16M4 10.5h16M4 15.5h10M4 20.5h7',
+  chat: 'M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4V6ZM8 9h8M8 12.5h5',
+  shield:
+    'M12 3l7 2.8v5.4c0 4.5-3 8.2-7 9.8-4-1.6-7-5.3-7-9.8V5.8L12 3ZM9 12l2.2 2.2L15.5 9.5',
+  split:
+    'M4 6h4l8 12h4M20 18l-2.5-2.5M20 18l-2.5 2.5M4 18h4l2.7-4M14.6 8.6 16 6h4M20 6l-2.5-2.5M20 6l-2.5 2.5',
+};
+
+const d = paths[name] ?? paths.rows;
+---
+
+<svg
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <path d={d}></path>
+</svg>

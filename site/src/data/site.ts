@@ -33,6 +33,21 @@ export const site = {
     href: '#waitlist',
   },
 
+  hero: {
+    kicker: 'Commerce decision engine',
+    title: 'Pricing, run as a closed loop.',
+    lede: 'Margent proposes a price move, tests it in your real checkout, proves the profit lift is causal, and keeps only what wins. Losers revert on their own. Every decision — and what it actually earned — lands in an append-only ledger.',
+    primaryCta: { label: 'Request access', href: '#waitlist' },
+    secondaryCta: { label: 'See the loop', href: '#loop' },
+  },
+
+  waitlist: {
+    kicker: 'Early access',
+    title: 'Run your pricing as a loop.',
+    body: 'Margent is onboarding a small set of Shopify stores. Early stores shape the roadmap and get founding terms.',
+    ctaLabel: 'Request access',
+  },
+
   footer: {
     tagline: 'Pricing, run as a closed loop.',
     columns: [

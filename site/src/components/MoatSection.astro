@@ -1,0 +1,207 @@
+---
+import { moat } from '../data/moat';
+
+const chartSummary =
+  `${moat.chart.title} ` +
+  moat.chart.rows.map((r) => `${r.label} (${r.note})`).join('; ') +
+  `. ${moat.chart.caption}`;
+---
+
+<section id="moat" class="section band--ink" aria-labelledby="moat-title">
+  <div class="container">
+    <p class="kicker">{moat.kicker}</p>
+    <h2 id="moat-title" class="section-title">{moat.title}</h2>
+    <p class="section-lede">{moat.lede}</p>
+
+    <div class="moat-grid">
+      <ul class="moat-points">
+        {
+          moat.points.map((p) => (
+            <li class="moat-point">
+              <span class="moat-n" aria-hidden="true">
+                {p.n}
+              </span>
+              <div>
+                <h3 class="moat-point-title">{p.title}</h3>
+                <p class="moat-point-body">{p.body}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+
+      <figure class="fidelity" role="img" aria-label={chartSummary}>
+        <figcaption class="fidelity-title" aria-hidden="true">
+          {moat.chart.title}
+        </figcaption>
+        <div class="fidelity-rows" aria-hidden="true">
+          {
+            moat.chart.rows.map((row) => (
+              <div class={`fidelity-row${row.highlight ? ' is-highlight' : ''}`}>
+                <span class="fidelity-label">{row.label}</span>
+                <span class="fidelity-track">
+                  <span class="fidelity-bar" style={`width: ${row.value}%`} />
+                </span>
+                <span class="fidelity-note">{row.note}</span>
+              </div>
+            ))
+          }
+        </div>
+        <p class="fidelity-caption" aria-hidden="true">{moat.chart.caption}</p>
+      </figure>
+    </div>
+
+    <aside class="why-now">
+      <h3 class="why-now-title">{moat.whyNow.title}</h3>
+      <p class="why-now-body">
+        {moat.whyNow.body}
+        <a class="why-now-source" href={moat.whyNow.sourceHref} rel="noopener">
+          {moat.whyNow.sourceLabel}&nbsp;↗
+        </a>
+      </p>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .moat-grid {
+    margin-top: var(--space-12);
+    display: grid;
+    grid-template-columns: minmax(0, 11fr) minmax(0, 9fr);
+    gap: clamp(var(--space-8), 5vw, var(--space-16));
+    align-items: start;
+  }
+
+  .moat-points {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .moat-point {
+    display: grid;
+    grid-template-columns: 2.5em 1fr;
+    gap: var(--space-3);
+  }
+
+  .moat-n {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    padding-top: 0.45em;
+  }
+
+  .moat-point-title {
+    font-size: var(--text-xl);
+  }
+
+  .moat-point-body {
+    margin-top: var(--space-2);
+    color: var(--muted);
+    font-size: var(--text-sm);
+    line-height: 1.65;
+  }
+
+  /* --- Signal-fidelity chart: pure CSS, illustrative, direct-labeled --- */
+  .fidelity {
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: var(--space-6);
+  }
+
+  .fidelity-title {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+  }
+
+  .fidelity-rows {
+    margin-top: var(--space-6);
+    display: grid;
+    gap: var(--space-5, 1.25rem);
+  }
+
+  .fidelity-label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .fidelity-track {
+    display: block;
+    margin-top: var(--space-2);
+    background: color-mix(in srgb, var(--fg) 7%, transparent);
+    border-radius: 4px;
+    height: 12px;
+  }
+
+  .fidelity-bar {
+    display: block;
+    height: 100%;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--muted) 55%, transparent);
+  }
+
+  .is-highlight .fidelity-bar {
+    background: var(--accent);
+  }
+
+  .fidelity-note {
+    display: block;
+    margin-top: var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+
+  .is-highlight .fidelity-note {
+    color: var(--accent);
+  }
+
+  .fidelity-caption {
+    margin-top: var(--space-6);
+    font-size: var(--text-xs);
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-3);
+  }
+
+  /* --- Why now --- */
+  .why-now {
+    margin-top: var(--space-16);
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-8);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+    gap: var(--space-6);
+  }
+
+  .why-now-title {
+    font-size: var(--text-xl);
+  }
+
+  .why-now-body {
+    color: var(--muted);
+    max-width: 62ch;
+  }
+
+  .why-now-source {
+    display: inline-block;
+    margin-left: 0.5em;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+  }
+
+  @media (max-width: 900px) {
+    .moat-grid,
+    .why-now {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

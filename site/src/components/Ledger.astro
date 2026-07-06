@@ -1,0 +1,166 @@
+---
+import { seededRows, statusLabels, counters } from '../data/ledger';
+
+// Stage 2: static, server-rendered panel (complete without JS).
+// Stage 3 adds the streaming client script on top of this markup.
+const summary =
+  'A live preview of the Margent decision ledger: a stream of pricing ' +
+  'decisions with their test status, profit delta, and confidence. ' +
+  'Simulated data for illustration.';
+---
+
+<div class="ledger" role="img" aria-label={summary}>
+  <div class="ledger-inner" aria-hidden="true">
+    <header class="ledger-head">
+      <span class="ledger-dot"></span>
+      <span class="ledger-title">Decision ledger</span>
+      <span class="ledger-tag">simulated preview</span>
+    </header>
+
+    <ul class="ledger-rows" id="ledger-rows">
+      {
+        seededRows.map((row) => (
+          <li class={`ledger-row is-${row.status}`}>
+            <span class="cell-sku">{row.sku}</span>
+            <span class="cell-action">{row.action}</span>
+            <span class="cell-status">{statusLabels[row.status]}</span>
+            <span class="cell-delta">{row.delta}</span>
+            <span class="cell-conf">{row.confidence}</span>
+          </li>
+        ))
+      }
+    </ul>
+
+    <footer class="ledger-foot">
+      <span>
+        <strong id="counter-experiments">{counters.experiments.toLocaleString('en-US')}</strong>
+        {counters.experimentsLabel}
+      </span>
+      <span>
+        <strong id="counter-lift">{counters.netLift}</strong>
+        {counters.netLiftLabel}
+      </span>
+    </footer>
+  </div>
+</div>
+
+<style>
+  .ledger {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  .ledger-inner {
+    background: var(--ink-2);
+    border: 1px solid var(--line-on-ink);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .ledger-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--line-on-ink);
+  }
+
+  .ledger-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--teal-bright);
+    flex-shrink: 0;
+  }
+
+  .ledger-title {
+    font-weight: 500;
+    font-size: var(--text-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-on-ink);
+  }
+
+  .ledger-tag {
+    margin-left: auto;
+    font-size: var(--text-xs);
+    color: var(--muted-on-ink);
+    border: 1px solid var(--line-on-ink);
+    border-radius: 99px;
+    padding: 0.1em 0.7em;
+  }
+
+  .ledger-rows {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-2) 0;
+  }
+
+  .ledger-row {
+    display: grid;
+    grid-template-columns: 5.5em 1fr 5.5em 4em 3em;
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: var(--space-2) var(--space-4);
+    color: var(--muted-on-ink);
+    white-space: nowrap;
+  }
+
+  .cell-sku {
+    color: var(--text-on-ink);
+  }
+
+  .cell-status {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .is-kept .cell-status,
+  .is-kept .cell-delta {
+    color: var(--teal-bright);
+  }
+
+  .is-testing .cell-status {
+    color: var(--amber-bright);
+  }
+
+  .is-reverted .cell-status,
+  .is-reverted .cell-delta {
+    color: var(--red-bright);
+  }
+
+  .cell-delta,
+  .cell-conf {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ledger-foot {
+    display: flex;
+    gap: var(--space-6);
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--line-on-ink);
+    font-size: var(--text-xs);
+    color: var(--muted-on-ink);
+    flex-wrap: wrap;
+  }
+
+  .ledger-foot strong {
+    color: var(--text-on-ink);
+    font-weight: 500;
+    margin-right: 0.4em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 420px) {
+    .ledger-row {
+      grid-template-columns: 5.5em 1fr 4em;
+    }
+
+    .cell-status,
+    .cell-conf {
+      display: none;
+    }
+  }
+</style>

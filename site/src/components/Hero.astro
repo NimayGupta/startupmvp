@@ -1,0 +1,68 @@
+---
+import { site } from '../data/site';
+import Ledger from './Ledger.astro';
+---
+
+<section id="top" class="hero band--ink" aria-labelledby="hero-title">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <p class="kicker">{site.hero.kicker}</p>
+      <h1 id="hero-title" class="hero-title">{site.hero.title}</h1>
+      <p class="hero-lede">{site.hero.lede}</p>
+      <div class="hero-ctas">
+        <a class="btn btn--primary" href={site.hero.primaryCta.href}>
+          {site.hero.primaryCta.label}
+        </a>
+        <a class="btn btn--ghost" href={site.hero.secondaryCta.href}>
+          {site.hero.secondaryCta.label}
+        </a>
+      </div>
+    </div>
+    <div class="hero-ledger">
+      <Ledger />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-block: clamp(4rem, 3rem + 6vw, 8rem);
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 10fr) minmax(0, 9fr);
+    gap: clamp(var(--space-8), 5vw, var(--space-16));
+    align-items: center;
+  }
+
+  .hero-title {
+    font-size: var(--text-hero);
+    max-width: 14ch;
+    margin-top: var(--space-4);
+  }
+
+  .hero-lede {
+    margin-top: var(--space-6);
+    max-width: 52ch;
+    color: var(--muted);
+    font-size: var(--text-lg);
+  }
+
+  .hero-ctas {
+    margin-top: var(--space-8);
+    display: flex;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 900px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-ledger {
+      max-width: 560px;
+    }
+  }
+</style>

@@ -1,0 +1,88 @@
+---
+import { roadmap } from '../data/roadmap';
+---
+
+<section id="coming" class="section band--paper" aria-labelledby="coming-title">
+  <div class="container">
+    <p class="kicker">Roadmap</p>
+    <h2 id="coming-title" class="section-title">What’s coming</h2>
+    <p class="section-lede">
+      The app funds the flywheel. The ledger is the long game. In between,
+      this is the order of operations.
+    </p>
+
+    <ol class="timeline">
+      {
+        roadmap.map((row) => (
+          <li class={`timeline-row is-${row.status}`}>
+            <span class="timeline-period">{row.period}</span>
+            <div class="timeline-body">
+              <h3 class="timeline-title">{row.title}</h3>
+              <p class="timeline-text">{row.body}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .timeline {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--space-12);
+    display: grid;
+  }
+
+  .timeline-row {
+    display: grid;
+    grid-template-columns: minmax(8em, 1fr) minmax(0, 4fr);
+    gap: var(--space-6);
+    padding-block: var(--space-6);
+    border-top: 1px solid var(--line);
+  }
+
+  .timeline-row:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .timeline-period {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding-top: 0.5em;
+    color: var(--muted);
+  }
+
+  .is-now .timeline-period {
+    color: var(--accent);
+  }
+
+  .is-rolling-out .timeline-period {
+    color: var(--accent-amber);
+  }
+
+  .is-later .timeline-period {
+    color: var(--accent-violet);
+  }
+
+  .timeline-title {
+    font-size: var(--text-xl);
+  }
+
+  .timeline-text {
+    margin-top: var(--space-2);
+    color: var(--muted);
+    max-width: 62ch;
+  }
+
+  @media (max-width: 540px) {
+    .timeline-row {
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+  }
+</style>

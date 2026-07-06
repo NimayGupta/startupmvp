@@ -1,59 +1,18 @@
 ---
 import Layout from '../layouts/Layout.astro';
-
-// Stage 1: section scaffold only. Each section gains its real component in
-// Stage 2 (content) and Stage 3 (ledger).
-const stubs = [
-  { id: 'loop', band: 'band--paper', kicker: 'The loop', title: 'How Margent decides' },
-  { id: 'features', band: 'band--paper-2', kicker: 'Features', title: 'What ships with the engine' },
-  { id: 'moat', band: 'band--ink', kicker: 'The ledger', title: 'The environment labs can’t buy' },
-  { id: 'coming', band: 'band--paper', kicker: 'Roadmap', title: 'What’s coming' },
-  { id: 'waitlist', band: 'band--ink', kicker: 'Early access', title: 'Run your pricing as a loop' },
-];
+import Hero from '../components/Hero.astro';
+import LoopDiagram from '../components/LoopDiagram.astro';
+import FeatureGrid from '../components/FeatureGrid.astro';
+import MoatSection from '../components/MoatSection.astro';
+import Roadmap from '../components/Roadmap.astro';
+import CtaBand from '../components/CtaBand.astro';
 ---
 
 <Layout>
-  <section id="top" class="hero band--ink" aria-labelledby="hero-title">
-    <div class="container">
-      <p class="kicker">Commerce decision engine</p>
-      <h1 id="hero-title" class="hero-title">Pricing, run as a closed loop.</h1>
-      <p class="section-lede">
-        Propose. Test in checkout. Prove the lift. Keep what wins. The live
-        decision ledger lands here in Stage&nbsp;3.
-      </p>
-    </div>
-  </section>
-
-  {
-    stubs.map((s) => (
-      <section id={s.id} class={`section ${s.band}`} aria-labelledby={`${s.id}-title`}>
-        <div class="container">
-          <p class="kicker">{s.kicker}</p>
-          <h2 id={`${s.id}-title`} class="section-title">
-            {s.title}
-          </h2>
-        </div>
-      </section>
-    ))
-  }
+  <Hero />
+  <LoopDiagram />
+  <FeatureGrid />
+  <MoatSection />
+  <Roadmap />
+  <CtaBand />
 </Layout>
-
-<style>
-  .hero {
-    padding-block: var(--space-section);
-    min-height: 60vh;
-    display: grid;
-    align-items: center;
-  }
-
-  .hero-title {
-    font-size: var(--text-hero);
-    max-width: 14ch;
-    margin-top: var(--space-4);
-  }
-
-  /* Stub sections get generous empty space so band rhythm is visible */
-  .section {
-    min-height: 40vh;
-  }
-</style>
