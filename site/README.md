@@ -60,3 +60,13 @@ Static host. Configs for both Vercel (`vercel.json`) and Netlify
 
 CI: `.github/workflows/site-ci.yml` builds the site on any change under
 `site/**`. The app's CI/deploy workflows ignore `site/**`.
+
+## Quality notes
+
+- Shipped JS: ~1.3KB gzip total (nav toggle + ledger stream, inlined).
+- Verified: no horizontal overflow at 360px, ledger degrades to static
+  rows under `prefers-reduced-motion` and with JS disabled, fonts fully
+  self-hosted (no external requests in built HTML).
+- Lighthouse: intentionally not run (skipped at the owner's request).
+  If you want scores: `npm run preview`, then
+  `npx lighthouse http://localhost:4321 --view`.

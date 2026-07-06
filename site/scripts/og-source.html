@@ -1,0 +1,117 @@
+<!doctype html>
+<!--
+  Source for public/og.png (1200x630). Regenerate after editing:
+    node scripts/make-og.mjs
+  (starts headless Chrome itself; see that script for details)
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face {
+    font-family: 'Fraunces Variable';
+    src: url('../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-opsz-normal.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'IBM Plex Mono';
+    font-weight: 500;
+    src: url('../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Inter Variable';
+    src: url('../node_modules/@fontsource-variable/inter/files/inter-latin-opsz-normal.woff2') format('woff2');
+  }
+
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    width: 1200px;
+    height: 630px;
+    background: #16140f;
+    color: #f2eee5;
+    font-family: 'Inter Variable', sans-serif;
+    display: flex;
+    overflow: hidden;
+  }
+  .left {
+    padding: 72px 0 72px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+  }
+  .brand { display: flex; align-items: center; gap: 18px; }
+  .brand svg { display: block; }
+  .brand-name {
+    font-family: 'Fraunces Variable';
+    font-weight: 550;
+    font-size: 34px;
+    letter-spacing: -0.01em;
+  }
+  h1 {
+    font-family: 'Fraunces Variable';
+    font-weight: 550;
+    font-size: 74px;
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+    max-width: 10ch;
+  }
+  .tag {
+    font-family: 'IBM Plex Mono';
+    font-weight: 500;
+    font-size: 19px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #2fc79f;
+  }
+  .ledger {
+    width: 400px;
+    margin: 72px 80px 72px 40px;
+    background: #211e17;
+    border: 1px solid rgba(242, 238, 229, 0.16);
+    border-radius: 14px;
+    align-self: center;
+    font-family: 'IBM Plex Mono';
+    font-weight: 500;
+    font-size: 17px;
+    overflow: hidden;
+  }
+  .lhead {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 22px;
+    border-bottom: 1px solid rgba(242, 238, 229, 0.16);
+    font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #2fc79f; }
+  .row {
+    display: flex; justify-content: space-between; gap: 14px;
+    padding: 13px 22px; color: #a8a093; white-space: nowrap;
+  }
+  .row b { color: #f2eee5; font-weight: 500; }
+  .kept { color: #2fc79f; }
+  .test { color: #e8a33d; }
+  .rev  { color: #f07b6a; }
+</style>
+</head>
+<body>
+  <div class="left">
+    <div class="brand">
+      <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+        <rect width="64" height="64" rx="14" fill="#211e17"/>
+        <path d="M15 44V21l17 17 17-17v23" stroke="#f2eee5" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="15" y1="53" x2="49" y2="53" stroke="#2fc79f" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <span class="brand-name">Margent</span>
+    </div>
+    <h1>Pricing, run as a closed loop.</h1>
+    <div class="tag">Commerce decision engine</div>
+  </div>
+  <div class="ledger">
+    <div class="lhead"><span class="dot"></span> Decision ledger</div>
+    <div class="row"><b>SKU-8841</b> lower 8% <span class="kept">kept</span> <span class="kept">+2.4%</span></div>
+    <div class="row"><b>SKU-2210</b> raise 5% <span class="test">testing</span> <span>—</span></div>
+    <div class="row"><b>SKU-0937</b> bundle <span class="rev">reverted</span> <span class="rev">−1.1%</span></div>
+    <div class="row"><b>SKU-5512</b> raise 3% <span class="kept">kept</span> <span class="kept">+1.8%</span></div>
+    <div class="row"><b>SKU-1189</b> lower 12% <span class="kept">kept</span> <span class="kept">+3.1%</span></div>
+  </div>
+</body>
+</html>

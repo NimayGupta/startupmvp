@@ -1,0 +1,43 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { site } from '../data/site';
+---
+
+<Layout title={`Not found — ${site.name}`} description="This page isn’t in the ledger.">
+  <section class="notfound band--ink" aria-labelledby="nf-title">
+    <div class="container">
+      <p class="kicker">404 · not recorded</p>
+      <h1 id="nf-title" class="nf-title">This page isn’t in the ledger.</h1>
+      <p class="section-lede">
+        Every real page is recorded. This address isn’t — check the URL, or
+        start from the top.
+      </p>
+      <div class="nf-ctas">
+        <a class="btn btn--primary" href="/">Back to the site</a>
+        <a class="btn btn--ghost" href={`mailto:${site.contactEmail}`}>Report a broken link</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .notfound {
+    min-height: 70vh;
+    display: grid;
+    align-items: center;
+    padding-block: var(--space-section);
+  }
+
+  .nf-title {
+    font-size: var(--text-hero);
+    max-width: 16ch;
+    margin-top: var(--space-4);
+  }
+
+  .nf-ctas {
+    margin-top: var(--space-8);
+    display: flex;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+</style>
