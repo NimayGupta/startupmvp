@@ -1,24 +1,34 @@
 ---
 import { site } from '../data/site';
+import WaitlistForm from './WaitlistForm.astro';
 
-// Stage 2: mailto CTA. Stage 4 replaces this with the capture form.
+// With PUBLIC_FORM_ENDPOINT set at build time the band renders the capture
+// form; without it, the mailto button is the graceful fallback.
+const hasForm = Boolean(import.meta.env.PUBLIC_FORM_ENDPOINT);
 ---
 
 <section id="waitlist" class="section band--ink" aria-labelledby="waitlist-title">
-  <div class="container cta-band">
+  <div class={`container cta-band${hasForm ? ' has-form' : ''}`}>
     <div>
       <p class="kicker">{site.waitlist.kicker}</p>
       <h2 id="waitlist-title" class="section-title">{site.waitlist.title}</h2>
       <p class="section-lede">{site.waitlist.body}</p>
+      {hasForm && <WaitlistForm />}
     </div>
-    <div class="cta-action">
-      <a class="btn btn--primary" href={`mailto:${site.contactEmail}`}>
-        {site.waitlist.ctaLabel}
-      </a>
-      <p class="cta-email">
-        or write to <a href={`mailto:${site.contactEmail}`}>{site.contactEmail}</a>
-      </p>
-    </div>
+    {
+      !hasForm && (
+        <div class="cta-action">
+          <a class="btn btn--primary" href={`mailto:${site.contactEmail}`}>
+            {site.waitlist.ctaLabel}
+          </a>
+        </div>
+      )
+    }
+  </div>
+  <div class="container">
+    <p class="cta-email">
+      or write to <a href={`mailto:${site.contactEmail}`}>{site.contactEmail}</a>
+    </p>
   </div>
 </section>
 
@@ -30,13 +40,16 @@ import { site } from '../data/site';
     align-items: center;
   }
 
+  .cta-band.has-form {
+    grid-template-columns: 1fr;
+  }
+
   .cta-action {
     justify-self: end;
-    text-align: right;
   }
 
   .cta-email {
-    margin-top: var(--space-4);
+    margin-top: var(--space-6);
     font-size: var(--text-sm);
     color: var(--muted);
   }
@@ -54,7 +67,6 @@ import { site } from '../data/site';
 
     .cta-action {
       justify-self: start;
-      text-align: left;
     }
   }
 </style>
