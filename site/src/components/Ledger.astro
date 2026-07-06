@@ -1,8 +1,9 @@
 ---
 import { seededRows, statusLabels, counters } from '../data/ledger';
 
-// Stage 2: static, server-rendered panel (complete without JS).
-// Stage 3 adds the streaming client script on top of this markup.
+// Progressively enhanced: the 6 seeded rows render server-side, so the
+// panel is complete with JS disabled. The client script below streams new
+// rows unless the user prefers reduced motion.
 const summary =
   'A live preview of the Margent decision ledger: a stream of pricing ' +
   'decisions with their test status, profit delta, and confidence. ' +
@@ -163,4 +164,101 @@ const summary =
       display: none;
     }
   }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .ledger-row.is-new {
+      animation: row-in var(--dur-med) var(--ease-out);
+    }
+  }
+
+  @keyframes row-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 </style>
+
+<script>
+  import { pools, counters, statusLabels, type LedgerStatus } from '../data/ledger';
+
+  const list = document.getElementById('ledger-rows');
+  const expEl = document.getElementById('counter-experiments');
+  const liftEl = document.getElementById('counter-lift');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  if (list && expEl && liftEl && !reduced.matches) {
+    let experiments = counters.experiments;
+    let lift = parseFloat(counters.netLift);
+    const rand = (min: number, max: number) => min + Math.random() * (max - min);
+    const pick = <T,>(arr: readonly T[]) => arr[Math.floor(Math.random() * arr.length)];
+
+    const makeRow = () => {
+      const r = Math.random();
+      const status: LedgerStatus = r < 0.5 ? 'kept' : r < 0.8 ? 'testing' : 'reverted';
+      const delta =
+        status === 'kept'
+          ? `+${rand(0.6, 3.8).toFixed(1)}%`
+          : status === 'reverted'
+            ? `−${rand(0.4, 1.8).toFixed(1)}%`
+            : '—';
+      const confidence = (status === 'testing' ? rand(0.5, 0.85) : rand(0.9, 0.99)).toFixed(2);
+      const sku = `SKU-${String(Math.floor(rand(pools.skuRange[0], pools.skuRange[1]))).padStart(4, '0')}`;
+
+      const li = document.createElement('li');
+      li.className = `ledger-row is-${status} is-new`;
+      for (const [cls, text] of [
+        ['cell-sku', sku],
+        ['cell-action', pick(pools.actions)],
+        ['cell-status', statusLabels[status]],
+        ['cell-delta', delta],
+        ['cell-conf', confidence],
+      ]) {
+        const span = document.createElement('span');
+        span.className = cls;
+        span.textContent = text;
+        li.append(span);
+      }
+      li.addEventListener('animationend', () => li.classList.remove('is-new'), { once: true });
+
+      if (status !== 'testing') {
+        experiments += 1;
+        expEl.textContent = experiments.toLocaleString('en-US');
+        lift = Math.max(0, lift + (status === 'kept' ? rand(0.005, 0.03) : -rand(0.002, 0.015)));
+        liftEl.textContent = `+${lift.toFixed(1)}%`;
+      }
+      return li;
+    };
+
+    let timer: number | undefined;
+    let onScreen = false;
+    const tick = () => {
+      list.prepend(makeRow());
+      while (list.children.length > 6) list.lastElementChild?.remove();
+      timer = window.setTimeout(tick, rand(2200, 3600));
+    };
+    const sync = () => {
+      const shouldRun = onScreen && !document.hidden && !reduced.matches;
+      if (shouldRun && timer === undefined) timer = window.setTimeout(tick, 1200);
+      if (!shouldRun && timer !== undefined) {
+        window.clearTimeout(timer);
+        timer = undefined;
+      }
+    };
+
+    // Stream only while the panel is on screen and the tab is visible.
+    new IntersectionObserver(
+      ([entry]) => {
+        onScreen = entry.isIntersecting;
+        sync();
+      },
+      { threshold: 0.2 }
+    ).observe(list);
+    document.addEventListener('visibilitychange', sync);
+    reduced.addEventListener('change', sync);
+  }
+</script>
