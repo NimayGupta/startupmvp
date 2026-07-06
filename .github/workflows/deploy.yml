@@ -5,6 +5,8 @@ on:
     branches:
       - main      # → production ECS cluster
       - staging   # → staging ECS cluster
+    paths-ignore:
+      - 'site/**' # marketing site never triggers an app deploy
 
 concurrency:
   group: deploy-${{ github.ref_name }}

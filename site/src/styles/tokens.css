@@ -1,0 +1,118 @@
+/*
+ * Margent design tokens — single source of truth for the visual system.
+ * Surfaces alternate between warm near-black (ink) and warm off-white (paper).
+ * Accents: teal = kept/win, amber = testing/rolling-out, violet = roadmap/
+ * environment, red = reverted. Each accent has a `-bright` variant tuned for
+ * AA contrast on ink; the base variant is tuned for AA on paper.
+ */
+:root {
+  /* Surfaces */
+  --ink: #16140f;
+  --ink-2: #211e17; /* raised cards / ledger panel on ink */
+  --paper: #faf7f1;
+  --paper-2: #f1ebe0; /* alternating band on paper */
+
+  /* Text */
+  --text-on-paper: #16140f;
+  --muted-on-paper: #5c564a;
+  --text-on-ink: #f2eee5;
+  --muted-on-ink: #a8a093;
+
+  /* Accents on paper (AA ≥ 4.5:1 against --paper) */
+  --teal: #0e7a6a;
+  --amber: #9a5e0b;
+  --violet: #5b4bd4;
+  --red: #b4402e;
+
+  /* Accents on ink (AA ≥ 4.5:1 against --ink) */
+  --teal-bright: #2fc79f;
+  --amber-bright: #e8a33d;
+  --violet-bright: #9d8ff2;
+  --red-bright: #f07b6a;
+
+  /* Hairlines */
+  --line-on-paper: color-mix(in srgb, #16140f 16%, transparent);
+  --line-on-ink: color-mix(in srgb, #f2eee5 16%, transparent);
+
+  /* Type */
+  --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Type scale (fluid) */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: clamp(1.25rem, 1.1rem + 0.7vw, 1.5rem);
+  --text-2xl: clamp(1.6rem, 1.3rem + 1.4vw, 2.25rem);
+  --text-hero: clamp(2.4rem, 1.6rem + 4vw, 4.25rem);
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-section: clamp(4rem, 3rem + 5vw, 7.5rem);
+
+  /* Shape + layout */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --max-w: 1120px;
+  --gutter: clamp(1.25rem, 4vw, 2.5rem);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 160ms;
+  --dur-med: 320ms;
+}
+
+/*
+ * Band contexts — components read only these contextual vars, so any
+ * component works on either surface without knowing which one it's on.
+ */
+.band--ink {
+  --bg: var(--ink);
+  --bg-raised: var(--ink-2);
+  --fg: var(--text-on-ink);
+  --muted: var(--muted-on-ink);
+  --line: var(--line-on-ink);
+  --accent: var(--teal-bright);
+  --accent-amber: var(--amber-bright);
+  --accent-violet: var(--violet-bright);
+  --accent-red: var(--red-bright);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.band--paper {
+  --bg: var(--paper);
+  --bg-raised: #ffffff;
+  --fg: var(--text-on-paper);
+  --muted: var(--muted-on-paper);
+  --line: var(--line-on-paper);
+  --accent: var(--teal);
+  --accent-amber: var(--amber);
+  --accent-violet: var(--violet);
+  --accent-red: var(--red);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.band--paper-2 {
+  --bg: var(--paper-2);
+  --bg-raised: var(--paper);
+  --fg: var(--text-on-paper);
+  --muted: var(--muted-on-paper);
+  --line: var(--line-on-paper);
+  --accent: var(--teal);
+  --accent-amber: var(--amber);
+  --accent-violet: var(--violet);
+  --accent-red: var(--red);
+  background: var(--bg);
+  color: var(--fg);
+}

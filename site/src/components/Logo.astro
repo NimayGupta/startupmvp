@@ -1,0 +1,31 @@
+---
+// The Margent mark: an M drawn as a ledger entry above its rule.
+interface Props {
+  size?: number;
+}
+const { size = 26 } = Astro.props;
+---
+
+<svg
+  width={size}
+  height={size}
+  viewBox="0 0 64 64"
+  fill="none"
+  aria-hidden="true"
+>
+  <rect width="64" height="64" rx="14" fill="var(--ink, #16140f)"></rect>
+  <path
+    d="M15 44V21l17 17 17-17v23"
+    stroke="#f2eee5"
+    stroke-width="6"
+    stroke-linecap="round"
+    stroke-linejoin="round"></path>
+  <line
+    x1="15"
+    y1="53"
+    x2="49"
+    y2="53"
+    stroke="var(--teal-bright, #2fc79f)"
+    stroke-width="4"
+    stroke-linecap="round"></line>
+</svg>
