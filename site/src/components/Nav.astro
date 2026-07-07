@@ -28,7 +28,12 @@ import Logo from './Logo.astro';
             ))
           }
         </ul>
-        <a class="btn btn--primary nav-cta" href={site.cta.href}>{site.cta.label}</a>
+        <a
+          class="btn btn--primary nav-cta"
+          href={site.cta.href}
+          target={site.cta.href.startsWith('http') ? '_blank' : undefined}
+          rel={site.cta.href.startsWith('http') ? 'noopener' : undefined}
+        >{site.cta.label}</a>
       </div>
     </nav>
   </div>

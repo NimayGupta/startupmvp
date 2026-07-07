@@ -44,10 +44,12 @@ font requests.
 
 ## Early-access form
 
-The #waitlist band is a mailto CTA by default. Set `PUBLIC_FORM_ENDPOINT`
+By default every "Request access" CTA links out to the early-access signup
+form (`requestAccessUrl` in `src/data/site.ts`, currently a Google Form),
+opening in a new tab. Alternatively, set `PUBLIC_FORM_ENDPOINT`
 (see `.env.example`) to a form provider endpoint (e.g. a Formspree form) and
-rebuild to render the capture form instead — email required, name and store
-URL optional. It submits natively without JS, upgrades to inline
+rebuild to render the inline capture form in the #waitlist band instead —
+email required, name and store URL optional. It submits natively without JS, upgrades to inline
 success/error states with JS, and drops obvious bots via a honeypot field
 plus a minimum time-to-submit check. No analytics, no trackers; the only
 data sent anywhere is the form fields, to the endpoint you configure.

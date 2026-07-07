@@ -2,8 +2,9 @@
 import { site } from '../data/site';
 import WaitlistForm from './WaitlistForm.astro';
 
-// With PUBLIC_FORM_ENDPOINT set at build time the band renders the capture
-// form; without it, the mailto button is the graceful fallback.
+// With PUBLIC_FORM_ENDPOINT set at build time the band renders the inline
+// capture form; without it, the button links out to the early-access
+// signup form (site.requestAccessUrl), with the contact email below.
 const hasForm = Boolean(import.meta.env.PUBLIC_FORM_ENDPOINT);
 ---
 
@@ -18,7 +19,12 @@ const hasForm = Boolean(import.meta.env.PUBLIC_FORM_ENDPOINT);
     {
       !hasForm && (
         <div class="cta-action">
-          <a class="btn btn--primary" href={`mailto:${site.contactEmail}`}>
+          <a
+            class="btn btn--primary"
+            href={site.requestAccessUrl}
+            target="_blank"
+            rel="noopener"
+          >
             {site.waitlist.ctaLabel}
           </a>
         </div>

@@ -10,7 +10,12 @@ import Ledger from './Ledger.astro';
       <h1 id="hero-title" class="hero-title">{site.hero.title}</h1>
       <p class="hero-lede">{site.hero.lede}</p>
       <div class="hero-ctas">
-        <a class="btn btn--primary" href={site.hero.primaryCta.href}>
+        <a
+          class="btn btn--primary"
+          href={site.hero.primaryCta.href}
+          target={site.hero.primaryCta.href.startsWith('http') ? '_blank' : undefined}
+          rel={site.hero.primaryCta.href.startsWith('http') ? 'noopener' : undefined}
+        >
           {site.hero.primaryCta.label}
         </a>
         <a class="btn btn--ghost" href={site.hero.secondaryCta.href}>
